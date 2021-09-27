@@ -2,8 +2,8 @@ package config
 
 import (
 	"fmt"
-	"time"
 	"github.com/caarlos0/env/v6"
+	"time"
 )
 
 type HttpCfg struct {
@@ -12,10 +12,10 @@ type HttpCfg struct {
 }
 
 type CrawlerCfg struct {
-	ResponseTimeout time.Duration `env:"RESPONSE_TIMEOUT" envDefault:"30s"`
-	StartThreads    int           `env:"START_THREADS" envDefault:"5"`
-	Iterations      int           `env:"ITERATIONS_LIMIT" envDefault:"100"`
-	RequestTimeout  time.Duration `env:"REQUEST_TIMEOUT" envDefault:"3s"`
+	ResponseTimeout time.Duration `env:"SERVER_RESPONSE_TIMEOUT" envDefault:"29s"`
+	StartThreads    int           `env:"CRAWLER_START_THREADS" envDefault:"5"`
+	Iterations      int           `env:"CRAWLER_ITERATIONS_LIMIT_PER_URL" envDefault:"10"`
+	RequestTimeout  time.Duration `env:"CRAWLER_REQUEST_TIMEOUT" envDefault:"3s"`
 }
 
 type Cfg struct {
