@@ -1,0 +1,13 @@
+version: '2.4'
+
+services:
+  yaresult_tester_app:
+    container_name: yaresult_tester_app
+    build:
+      context: .
+    env_file:
+      - .env
+    mem_reservation: 32m
+    mem_limit: 256m
+    ports:
+      - ${SERVER_PORT:-8999}:${SERVER_PORT:-8999}
