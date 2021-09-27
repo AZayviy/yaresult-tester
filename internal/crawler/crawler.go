@@ -11,6 +11,7 @@ type Crawler struct {
 	client          *http.Client
 	iterationsLimit int
 	responseTimeout time.Duration
+	requestTimeout  time.Duration
 	startThreads    int
 }
 
@@ -20,9 +21,11 @@ func NewCrawler(client *http.Client, cfg config.CrawlerCfg) *Crawler {
 		iterationsLimit: cfg.Iterations,
 		responseTimeout: cfg.ResponseTimeout,
 		startThreads:    cfg.StartThreads,
+		requestTimeout:  cfg.RequestTimeout,
 	}
 }
 
+//ProcessUrlsInBatch test each url and returns map url=>recommended concurrent requests
 func (c *Crawler) ProcessUrlsInBatch(urls []string) (res map[string]int) {
 	exitCh := make(chan bool)
 	syncUrls := NewUrlsMap(urls)
@@ -31,7 +34,7 @@ func (c *Crawler) ProcessUrlsInBatch(urls []string) (res map[string]int) {
 		go c.proccessSingleUrl(url, syncUrls, exitCh)
 	}
 
-	timeout := time.After(c.responseTimeout - (1 * time.Second))
+	timeout := time.After(c.responseTimeout - c.requestTimeout)
 
 	for i := 0; i < len(urls); i++ {
 		select {
