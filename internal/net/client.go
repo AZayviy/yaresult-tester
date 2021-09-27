@@ -6,8 +6,9 @@ import (
 )
 
 //NewHttpClient is constructor for http.Client 
-func NewHttpClient(requestTimeout time.Duration, checkRedirect func(req *http.Request, via []*http.Request) error) *http.Client {
+func NewHttpClient(transport *http.Transport, requestTimeout time.Duration, checkRedirect func(req *http.Request, via []*http.Request) error) *http.Client {
 	return &http.Client{
+		Transport: transport,
 		Timeout:       requestTimeout,
 		CheckRedirect: checkRedirect,
 	}

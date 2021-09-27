@@ -2,52 +2,62 @@ package crawler
 
 import (
 	"github.com/AZayviy/yaresult-tester/internal/config"
+	"log"
 	"net/http"
 	"time"
-	"fmt"
 )
 
 type Crawler struct {
-	urls   *Urls
-	client http.Client
-	cfg    config.CrawlerCfg
+	client          *http.Client
+	iterationsLimit int
+	responseTimeout time.Duration
+	startThreads    int
 }
 
-func NewCrawler(urls *Urls, client http.Client, cfg config.CrawlerCfg) *Crawler {
-	return &Crawler{urls: urls, client: client, cfg: cfg}
+func NewCrawler(client *http.Client, cfg config.CrawlerCfg) *Crawler {
+	return &Crawler{
+		client:          client,
+		iterationsLimit: cfg.Iterations,
+		responseTimeout: cfg.ResponseTimeout,
+		startThreads:    cfg.StartThreads,
+	}
 }
 
-func (c *Crawler) ProcessUrls(urls []string) (res map[string]int) {
+func (c *Crawler) ProcessUrlsInBatch(urls []string) (res map[string]int) {
 	exitCh := make(chan bool)
+	syncUrls := NewUrlsMap(urls)
 
 	for _, url := range urls {
-		go c.proccessUrl(url, exitCh)
+		go c.proccessSingleUrl(url, syncUrls, exitCh)
 	}
+
+	timeout := time.After(c.responseTimeout - (1 * time.Second))
 
 	for i := 0; i < len(urls); i++ {
 		select {
 		case <-exitCh:
 			continue
-		case <-time.After(c.cfg.ResponseTimeout * time.Second):
+		case <-timeout:
+			log.Printf("timeout\n")
 			res = make(map[string]int)
 			for _, url := range urls {
-				res[url] = c.urls.Get(url)
+				res[url] = syncUrls.Get(url)
 			}
 			return
 		}
 	}
 
-	return c.urls.data
+	return syncUrls.data
 }
 
-func (c *Crawler) proccessUrl(url string, exitCh chan<- bool) {
-	current := c.cfg.StartThreads
+func (c *Crawler) proccessSingleUrl(url string, syncUrls *Urls, exitCh chan<- bool) {
+	current := c.startThreads
 	previousUpscaled := false
-	for i := 0; i < c.cfg.Iterations; i++ {
+	for i := 0; i < c.iterationsLimit; i++ {
 		res := c.testUrl(url, current)
 		step := current / 2
 		if res {
-			c.urls.Set(url, current)
+			syncUrls.Set(url, current)
 			current = current + step
 			previousUpscaled = true
 		} else {
@@ -57,11 +67,10 @@ func (c *Crawler) proccessUrl(url string, exitCh chan<- bool) {
 			current = current - step
 		}
 		if current <= 1 {
-			c.urls.Set(url, 1)
+			syncUrls.Set(url, 1)
 			break
 		}
 	}
-	fmt.Printf("Tested %s result: %d\n", url, c.urls.Get(url))
 	exitCh <- true
 }
 
