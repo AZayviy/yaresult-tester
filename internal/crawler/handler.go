@@ -69,12 +69,14 @@ func (hh *httpHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	res, err := hh.crawler.client.Get(fmt.Sprintf(parser.BaseYandexURL, url.QueryEscape(query)))
 	if err != nil {
 		log.Println(err)
+		writeErrorResponse([]byte(err.Error()), w)
 		return
 	}
 	defer res.Body.Close()
 	bytes, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		log.Println(err)
+		writeErrorResponse([]byte(err.Error()), w)
 		return
 	}
 
