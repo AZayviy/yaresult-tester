@@ -7,7 +7,6 @@ type singleItemAccess interface {
 	Set(url string, res int)
 }
 
-
 type Urls struct {
 	mu   sync.Mutex
 	data map[string]int
