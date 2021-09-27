@@ -7,7 +7,7 @@ services:
       context: .
     env_file:
       - .env
-    mem_reservation: 32m
-    mem_limit: 256m
+    mem_reservation: 16m
+    mem_limit: 64m
     ports:
       - ${SERVER_PORT:-8999}:${SERVER_PORT:-8999}

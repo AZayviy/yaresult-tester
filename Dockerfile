@@ -18,6 +18,8 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
 ######### Start a new stage from scratch #######
 FROM scratch
 
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+
 # Copy the Pre-built binary file from the previous stage
 COPY --from=builder /app/cmd/main /app/bin/main
 
